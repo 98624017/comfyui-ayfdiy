@@ -1,0 +1,20 @@
+[project]
+name = "comfyui-ayfdiy"
+description = "AYF 定制 ComfyUI 工具节点集，包含是否为空判断、路径加载、提示词映射助手。"
+version = "0.1.0"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "torch",
+    "Pillow",
+    "aiohttp",
+    "toml; python_version < '3.11'",
+]
+
+[project.urls]
+Repository = "https://github.com/98624017/comfyui-ayfdiy"
+
+[tool.comfy]
+PublisherId = "ayfdiy"
+DisplayName = "AYFdiy 工具节点集"

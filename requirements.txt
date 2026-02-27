@@ -1,0 +1,5 @@
+numpy
+torch
+Pillow
+aiohttp
+toml; python_version < "3.11"

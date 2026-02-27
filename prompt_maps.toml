@@ -1,0 +1,38 @@
+# ==========================================
+# 🍌 Banana Prompt Maps 配置文件
+# ==========================================
+# 字段说明:
+# - [[maps]]: 定义一条关键词→完整文本的映射
+# - id: 唯一标识符 (UUID4格式) [必选]
+# - keywords: 关键词列表，匹配任意一个即命中 [必选]
+# - content: 映射输出的完整提示词文本 [必选]
+# - category: 分类名称 [可选，默认: "默认"]
+# - color: 显示颜色 (Hex格式) [可选，默认: "#2196F3"]
+# - created_at: 创建时间 (YYYY-MM-DD HH:MM) [可选]
+#
+# 示例:
+# [[maps]]
+# id = "my-map-001"
+# keywords = ["1girl", "girl", "一个女生"]
+# content = "a beautiful young woman in a fantasy forest..."
+# category = "人物"
+# color = "#2196F3"
+# created_at = "2026-01-01 12:00"
+# ==========================================
+
+[[maps]]
+id = "88d44de3-d06c-4a90-b89a-605e7b249ad4"
+keywords = ["间还萨达"]
+content = "阿三大胆萨达是电商的 大胆"
+category = "默认"
+color = "#2196F3"
+created_at = "2026-02-27 16:56"
+
+[[maps]]
+id = "bc9d9db1-96af-4c2c-9a2e-daac7e1b8add"
+keywords = ["第三方分分分"]
+content = "反倒是成网上发"
+category = "默认"
+color = "#2196F3"
+created_at = "2026-02-27 16:57"
+
