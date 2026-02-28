@@ -1,5 +1,4 @@
 import { app } from "/scripts/app.js";
-import { api } from "/scripts/api.js";
 
 const EXTENSION_NAME = "ayf.promptMapManager";
 const TARGET_NODE = "AYFPromptMapNode";
@@ -32,57 +31,6 @@ function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
     ctx.stroke();
   }
 }
-
-// --- API ---
-const PromptMapApi = {
-  async getMaps() {
-    try {
-      const resp = await api.fetchApi("/ayf/prompt-maps");
-      if (!resp.ok) return [];
-      const data = await resp.json();
-      return data.success ? data.data : [];
-    } catch (e) {
-      console.error("[AYFPromptMap] getMaps 失败:", e.message);
-      return [];
-    }
-  },
-  async addMap(keywords, content, category, color) {
-    try {
-      const resp = await api.fetchApi("/ayf/prompt-maps", {
-        method: "POST",
-        body: JSON.stringify({ keywords, content, category, color }),
-      });
-      if (!resp.ok) return { success: false, message: `HTTP ${resp.status}` };
-      return await resp.json();
-    } catch (e) {
-      return { success: false, message: e.message };
-    }
-  },
-  async updateMap(id, keywords, content, category, color) {
-    try {
-      const resp = await api.fetchApi("/ayf/prompt-maps", {
-        method: "POST",
-        body: JSON.stringify({ id, keywords, content, category, color }),
-      });
-      if (!resp.ok) return { success: false, message: `HTTP ${resp.status}` };
-      return await resp.json();
-    } catch (e) {
-      return { success: false, message: e.message };
-    }
-  },
-  async deleteMap(id) {
-    try {
-      const resp = await api.fetchApi("/ayf/prompt-maps", {
-        method: "DELETE",
-        body: JSON.stringify({ id }),
-      });
-      if (!resp.ok) return { success: false, message: `HTTP ${resp.status}` };
-      return await resp.json();
-    } catch (e) {
-      return { success: false, message: e.message };
-    }
-  },
-};
 
 // --- Modal ---
 class PromptMapModal {
@@ -353,8 +301,12 @@ const MODAL = new PromptMapModal();
 class PromptMapWidget {
   constructor(node) {
     this.node = node;
-    this.maps = []; // raw map objects from server
-    this.chips = []; // flat list: { keyword, map } for rendering
+    // 从 node.properties 读取映射数据（而非 API）
+    if (!this.node.properties) this.node.properties = {};
+    if (!Array.isArray(this.node.properties.mapData)) {
+      this.node.properties.mapData = [];
+    }
+    this.chips = [];
     this.tags = ["全部"];
     this.activeTag = "全部";
     this.editMode = false;
@@ -364,31 +316,80 @@ class PromptMapWidget {
     this.hoverTimer = null;
 
     this.lastCalculatedHeight = undefined;
-    this.isLoading = false;
 
     this.addBtnHitbox = null;
     this.editBtnHitbox = null;
-    this.refreshBtnHitbox = null;
     this.tagHitboxes = [];
     this.chipHitboxes = [];
 
-    this.loadMaps();
+    // 初始构建 UI 数据
+    this.updateTags();
+    this._buildChips();
   }
 
-  async loadMaps() {
-    if (this.isLoading) return;
-    this.isLoading = true;
+  // --- 本地 CRUD（替代 PromptMapApi）---
+
+  get maps() {
+    return this.node.properties.mapData || [];
+  }
+
+  _syncMapDataWidget() {
+    const w = this.node.widgets?.find((w) => w.name === "_map_data");
+    if (w) w.value = JSON.stringify(this.maps);
+  }
+
+  _afterDataChange() {
+    this.updateTags();
+    this._buildChips();
+    this._syncMapDataWidget();
     this.node.setDirtyCanvas(true, true);
-    try {
-      this.maps = await PromptMapApi.getMaps();
-      this.updateTags();
-      this._buildChips();
-    } catch (e) {
-      console.error("[AYFPromptMap] Load failed", e);
-    } finally {
-      this.isLoading = false;
-      this.node.setDirtyCanvas(true, true);
+  }
+
+  addMap(keywords, content, category, color) {
+    const id = crypto.randomUUID
+      ? crypto.randomUUID()
+      : "id-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+    const map = { id, keywords, content, category, color };
+    this.node.properties.mapData.push(map);
+    this._afterDataChange();
+    return map;
+  }
+
+  updateMap(id, keywords, content, category, color) {
+    const maps = this.node.properties.mapData;
+    const idx = maps.findIndex((m) => m.id === id);
+    if (idx >= 0) {
+      maps[idx] = { ...maps[idx], keywords, content, category, color };
+      this._afterDataChange();
+      return maps[idx];
     }
+    return null;
+  }
+
+  deleteMap(id) {
+    const maps = this.node.properties.mapData;
+    const idx = maps.findIndex((m) => m.id === id);
+    if (idx >= 0) {
+      maps.splice(idx, 1);
+      this._afterDataChange();
+      return true;
+    }
+    return false;
+  }
+
+  _checkKeywordConflict(keywords, excludeId = null) {
+    const normalizedNew = new Set(keywords.map((k) => k.trim().toLowerCase()));
+    for (const m of this.maps) {
+      if (excludeId && m.id === excludeId) continue;
+      for (const kw of m.keywords || []) {
+        if (normalizedNew.has(kw.trim().toLowerCase())) {
+          const preview = (m.content || "").slice(0, 20);
+          const cat = m.category || "默认";
+          return `关键词 "${kw}" 已被 [${cat}] / "${preview}..." 使用`;
+        }
+      }
+    }
+    return null;
   }
 
   updateTags() {
@@ -429,9 +430,7 @@ class PromptMapWidget {
     const editBtnText = this.editMode ? "退出编辑" : "编辑模式";
     const editBtnWidth = ctx.measureText(editBtnText).width + 20;
     const addBtnWidth = 40;
-    const refreshBtnWidth = 24;
-    const buttonsReservedWidth =
-      editBtnWidth + addBtnWidth + refreshBtnWidth + 30;
+    const buttonsReservedWidth = editBtnWidth + addBtnWidth + 20;
 
     let tagX = contentStartX;
     let tagY = 10;
@@ -565,45 +564,7 @@ class PromptMapWidget {
     ctx.fillText(editBtnText, editBtnX + editBtnWidth / 2, currentY + 11);
     this.editBtnHitbox = { x: editBtnX, y: currentY, w: editBtnWidth, h: 24 };
 
-    const refreshBtnWidth = 24;
-    const refreshBtnX = addBtnX - refreshBtnWidth - 10;
-    drawRoundedRect(
-      ctx,
-      refreshBtnX,
-      currentY,
-      refreshBtnWidth,
-      24,
-      4,
-      "#555",
-      "#777",
-    );
-    ctx.save();
-    if (this.isLoading) {
-      const cx = refreshBtnX + refreshBtnWidth / 2;
-      const cy = currentY + 12;
-      const angle = (performance.now() / 300) * 2 * Math.PI;
-      ctx.translate(cx, cy);
-      ctx.rotate(angle);
-      ctx.fillStyle = "#81C784";
-      ctx.font = "16px sans-serif";
-      ctx.fillText("↻", 0, 0);
-      this.node.setDirtyCanvas(true, false);
-    } else {
-      ctx.fillStyle = "#fff";
-      ctx.font = "16px sans-serif";
-      ctx.fillText("↻", refreshBtnX + refreshBtnWidth / 2, currentY + 12);
-    }
-    ctx.restore();
-    ctx.font = "12px sans-serif";
-    this.refreshBtnHitbox = {
-      x: refreshBtnX,
-      y: currentY,
-      w: refreshBtnWidth,
-      h: 24,
-    };
-
-    const buttonsReservedWidth =
-      editBtnWidth + addBtnWidth + refreshBtnWidth + 30;
+    const buttonsReservedWidth = editBtnWidth + addBtnWidth + 20;
 
     // Tags
     let tagX = contentStartX;
@@ -777,11 +738,6 @@ class PromptMapWidget {
       this.openAddDialog();
       return;
     }
-    const rb = this.refreshBtnHitbox;
-    if (rb && x >= rb.x && x <= rb.x + rb.w && y >= rb.y && y <= rb.y + rb.h) {
-      this.loadMaps();
-      return;
-    }
 
     // Chips
     for (const box of this.chipHitboxes) {
@@ -846,16 +802,12 @@ class PromptMapWidget {
         color: COLOR_PALETTE[5],
       },
       this.tags,
-      async (data) => {
-        const result = await PromptMapApi.addMap(
-          data.keywords,
-          data.content,
-          data.category,
-          data.color,
-        );
-        if (!result.success) return result.message || "保存失败";
-        this.loadMaps();
-        return null;
+      (data) => {
+        // 本节点关键词冲突检查
+        const conflict = this._checkKeywordConflict(data.keywords);
+        if (conflict) return conflict;
+        this.addMap(data.keywords, data.content, data.category, data.color);
+        return null; // 成功
       },
     );
   }
@@ -870,21 +822,14 @@ class PromptMapWidget {
         color: map.color || COLOR_PALETTE[5],
       },
       this.tags,
-      async (data) => {
-        const result = await PromptMapApi.updateMap(
-          map.id,
-          data.keywords,
-          data.content,
-          data.category,
-          data.color,
-        );
-        if (!result.success) return result.message || "保存失败";
-        this.loadMaps();
+      (data) => {
+        const conflict = this._checkKeywordConflict(data.keywords, map.id);
+        if (conflict) return conflict;
+        this.updateMap(map.id, data.keywords, data.content, data.category, data.color);
         return null;
       },
     );
 
-    // 插入删除按钮
     const delBtn = document.createElement("button");
     delBtn.innerText = "删除";
     Object.assign(delBtn.style, {
@@ -896,13 +841,8 @@ class PromptMapWidget {
       cursor: "pointer",
       marginRight: "auto",
     });
-    delBtn.onclick = async () => {
-      const result = await PromptMapApi.deleteMap(map.id);
-      if (!result.success) {
-        console.error("[AYFPromptMap] 删除失败:", result.message);
-        return;
-      }
-      this.loadMaps();
+    delBtn.onclick = () => {
+      this.deleteMap(map.id);
       MODAL.close();
     };
     btnRow.insertBefore(delBtn, btnRow.firstChild);
@@ -930,6 +870,29 @@ app.registerExtension({
       } catch (e) {
         console.warn(`[${EXTENSION_NAME}] onNodeCreated 原逻辑失败`, e);
         r = undefined;
+      }
+
+      // 初始化 properties.mapData
+      try {
+        if (!this.properties) this.properties = {};
+        if (!Array.isArray(this.properties.mapData)) {
+          this.properties.mapData = [];
+        }
+      } catch (e) {
+        console.warn(`[${EXTENSION_NAME}] properties 初始化失败`, e);
+      }
+
+      // 添加隐藏 widget 用于传数据到 Python 后端
+      try {
+        const mapDataWidget = this.addWidget("text", "_map_data", "[]", () => {}, {
+          serialize: true,
+        });
+        if (mapDataWidget) {
+          mapDataWidget.computeSize = () => [0, -4];
+          mapDataWidget.type = "converted-widget";
+        }
+      } catch (e) {
+        console.warn(`[${EXTENSION_NAME}] _map_data widget 创建失败`, e);
       }
 
       // Hook onMouseMove for tooltip
@@ -1011,6 +974,32 @@ app.registerExtension({
       } catch (_) {}
       try {
         this.__bananaPromptMapHasSerializedSize = true;
+      } catch (_) {}
+      // 从 properties 恢复后同步隐藏 widget
+      try {
+        const w = this.widgets?.find((w) => w.name === "_map_data");
+        if (w) w.value = JSON.stringify(this.properties?.mapData || []);
+      } catch (_) {}
+      // 重建 PromptMapWidget 数据
+      try {
+        if (this.promptMapWidget) {
+          this.promptMapWidget.updateTags();
+          this.promptMapWidget._buildChips();
+        }
+      } catch (_) {}
+      return r;
+    };
+
+    const onExecutionStart = nodeType.prototype.onExecutionStart;
+    nodeType.prototype.onExecutionStart = function () {
+      let r;
+      try {
+        r = onExecutionStart ? onExecutionStart.apply(this, arguments) : undefined;
+      } catch (_) {}
+      // 确保最新映射数据已同步到隐藏 widget
+      try {
+        const w = this.widgets?.find((w) => w.name === "_map_data");
+        if (w) w.value = JSON.stringify(this.properties?.mapData || []);
       } catch (_) {}
       return r;
     };

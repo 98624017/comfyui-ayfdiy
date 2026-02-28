@@ -22,7 +22,7 @@ pip install -r requirements.txt
 |--------|--------|------|
 | `AYFIsEmpty` | 是否为空（AYF定制版） | 判断输入是否为空，输出布尔值，支持多种数据类型 |
 | `AYFPathLoader` | AYF路径加载 | 从指定目录加载文件路径，支持通配符过滤和排序 |
-| `AYFPromptMapNode` | AYF提示词映射助手 | 关键词匹配提示词映射，支持 TOML 配置和前端管理界面 |
+| `AYFPromptMapNode` | AYF提示词映射助手 | 关键词匹配提示词映射，映射数据保存在节点实例中，支持前端管理界面 |
 
 ## 节点说明
 
@@ -42,11 +42,12 @@ pip install -r requirements.txt
 
 ### 提示词映射助手（AYFPromptMapNode）
 
-基于关键词匹配自动替换提示词。映射规则存储在 `prompt_maps.toml` 中，可通过 ComfyUI 前端管理界面进行增删改查。
+基于关键词匹配自动替换提示词。映射规则存储在节点属性中，可通过 ComfyUI 前端管理界面进行增删改查，并随工作流一同保存/加载。
 
 - **输入**：原始提示词文本
 - **输出**：映射后的提示词文本
-- **配置**：`prompt_maps.toml`（支持分类、颜色标记）
+- **存储方式**：节点内 `mapData`（支持分类、颜色标记）
+- **特性**：不同 `AYFPromptMapNode` 实例之间互不影响，避免全局配置串扰
 
 ## 分类
 

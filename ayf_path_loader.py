@@ -52,18 +52,17 @@ def _load_image_from_bytes(data: bytes, source_desc: str) -> Image.Image:
 def _load_image_from_file(file_path: str) -> Image.Image:
     """从本地文件路径加载 PIL Image。
 
-    直接用文件路径打开，load() 后 close() 释放文件句柄和压缩数据缓冲，
-    避免 f.read() → BytesIO 的双重缓冲开销。
+    直接用文件路径打开并在上下文中解码，确保文件句柄及时释放，
+    同时返回的 Image 对象保持可继续处理（缩放/转 tensor）。
     """
     if not os.path.isfile(file_path):
         raise FileNotFoundError(f"文件不存在: {file_path}")
     try:
-        img = Image.open(file_path)
-        img = ImageOps.exif_transpose(img)
-        img = img.convert("RGB")
-        img.load()   # 显式解码像素到内存
-        img.close()  # 释放文件句柄和压缩数据缓冲
-        return img
+        with Image.open(file_path) as src:
+            img = ImageOps.exif_transpose(src)
+            img = img.convert("RGB")
+            img.load()  # 显式解码像素到内存
+            return img
     except (OSError, ValueError) as e:
         raise ValueError(f"无法解析图片数据 ({file_path}): {e}") from e
 
