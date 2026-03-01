@@ -1,0 +1,32 @@
+[      21ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/user.css:0
+[      26ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/api/userdata/user.css:0
+[     374ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/api/v2/customnode/installed:0
+[     376ms] [WARNING] [ConflictDetection] No installed packages available from useInstalledPacks @ http://127.0.0.1:8188/assets/dialogService-CN1Hjai9.js:191
+[     376ms] [WARNING] [ConflictDetection] No installed packages available for import failure check @ http://127.0.0.1:8188/assets/dialogService-CN1Hjai9.js:191
+[     418ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/favicon.ico:0
+[     527ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/api/userdata?dir=subgraphs&recurse=true&split=false&full_info=true:0
+[     616ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/api/userdata/comfy.templates.json:0
+[     850ms] [WARNING] Extension pysssss.SnapToGrid is disabled. @ http://127.0.0.1:8188/assets/PanelTemplate-DCbkVgfF.js:0
+[     856ms] [WARNING] Extension pysssss.FaviconStatus is disabled. @ http://127.0.0.1:8188/assets/PanelTemplate-DCbkVgfF.js:0
+[     857ms] [WARNING] [ComfyUI Deprecated] Importing from "scripts/ui.js" is deprecated and will be removed in v1.34. @ http://127.0.0.1:8188/scripts/ui.js:1
+[     873ms] [WARNING] [ComfyUI Notice] "scripts/widgets.js" is an internal module, not part of the public API. Future updates may break this import. @ http://127.0.0.1:8188/scripts/widgets.js:1
+[     875ms] [WARNING] [ComfyUI Deprecated] Importing from "extensions/core/groupNode.js" is deprecated and will be removed in v1.34. @ http://127.0.0.1:8188/extensions/core/groupNode.js:1
+[     879ms] [WARNING] [ComfyUI Notice] "scripts/domWidget.js" is an internal module, not part of the public API. Future updates may break this import. @ http://127.0.0.1:8188/scripts/domWidget.js:1
+[     898ms] [WARNING] [ComfyUI Notice] "scripts/pnginfo.js" is an internal module, not part of the public API. Future updates may break this import. @ http://127.0.0.1:8188/scripts/pnginfo.js:1
+[     922ms] [WARNING] [MaskEditor] ComfyApp.open_maskeditor is deprecated. Plugins should migrate to using the command system or direct node context menu integration. @ http://127.0.0.1:8188/assets/core-CZuwbqhs.js:2
+[    1588ms] [WARNING] %c[DEPRECATED]%c Monkey-patching getCanvasMenuOptions is deprecated. (Extension: "pysssss.GraphArrange")
+Please use the new context menu API instead.
+
+See: https://docs.comfy.org/custom-nodes/js/context-menu-migration color: orange; font-weight: bold color: inherit @ http://127.0.0.1:8188/assets/dialogService-CN1Hjai9.js:1
+[    1589ms] [WARNING] %c[DEPRECATED]%c Monkey-patching getCanvasMenuOptions is deprecated. (Extension: "pysssss.NodeFinder")
+Please use the new context menu API instead.
+
+See: https://docs.comfy.org/custom-nodes/js/context-menu-migration color: orange; font-weight: bold color: inherit @ http://127.0.0.1:8188/assets/dialogService-CN1Hjai9.js:1
+[    1599ms] [WARNING] %c[DEPRECATED]%c Monkey-patching getCanvasMenuOptions is deprecated. (Extension: "rgthree.QueueNode")
+Please use the new context menu API instead.
+
+See: https://docs.comfy.org/custom-nodes/js/context-menu-migration color: orange; font-weight: bold color: inherit @ http://127.0.0.1:8188/assets/dialogService-CN1Hjai9.js:1
+[    1607ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/api/banana/system_presets:0
+[    1610ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8188/api/pysssss/autocomplete:0
+[    1631ms] [WARNING] [ComfyUI Deprecated] Importing from "scripts/ui/components/button.js" is deprecated and will be removed in v1.34. @ http://127.0.0.1:8188/scripts/ui/components/button.js:1
+[    1636ms] [WARNING] [ComfyUI Deprecated] Importing from "scripts/ui/components/buttonGroup.js" is deprecated and will be removed in v1.34. @ http://127.0.0.1:8188/scripts/ui/components/buttonGroup.js:1

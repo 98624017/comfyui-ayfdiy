@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-ayfdiy"
 description = "AYF 定制 ComfyUI 工具节点集，包含是否为空判断、路径加载、提示词映射助手。"
-version = "0.2.0"
+version = "0.2.1"
 license = "MIT"
 requires-python = ">=3.10"
 dependencies = [

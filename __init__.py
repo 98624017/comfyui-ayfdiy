@@ -13,6 +13,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {}
 SKIP_FILES = {
     "__init__.py",
     "logger.py",
+    "ayf_logger.py",
 }
 
 print("[AYFdiy] Loading nodes...")

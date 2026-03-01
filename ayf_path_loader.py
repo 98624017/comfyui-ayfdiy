@@ -20,7 +20,7 @@ from PIL import Image, ImageOps
 
 import folder_paths
 
-from logger import logger
+from ayf_logger import logger
 
 # 支持的图片扩展名（小写）
 _SUPPORTED_EXTENSIONS = frozenset({
